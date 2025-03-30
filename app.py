@@ -9,15 +9,15 @@ def detect_plant(image_path):
     # Read the image
     image = cv2.imread(image_path)
     
-    # Convert the image to HSV color space
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    # Convert the image to LAB color space (instead of HSV)
+    lab_image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
     
-    # Define the HSV range for green color
-    lower_green = np.array([40, 40, 40])
-    upper_green = np.array([80, 255, 255])
+    # Define the LAB range for green color (you can adjust the values based on your requirements)
+    lower_green = np.array([30, 20, 20])
+    upper_green = np.array([90, 255, 255])
     
     # Create a mask to detect green color
-    mask = cv2.inRange(hsv_image, lower_green, upper_green)
+    mask = cv2.inRange(lab_image, lower_green, upper_green)
     
     # Apply morphological operations to remove small noise
     kernel = np.ones((5, 5), np.uint8)
@@ -37,12 +37,12 @@ def detect_plant(image_path):
     green_percentage = (np.sum(mask_cleaned > 0) / mask_cleaned.size) * 100
     
     # Save the image with bounding boxes (optional)
-    output_path = image_path.replace('.jpg', '_output.jpg')
+    output_path = image_path.replace('.png', '_output.png')  # Save output as PNG
     cv2.imwrite(output_path, image)
     
     # Set a threshold for green detection (e.g., at least 5% of the image should be green)
     if green_percentage > 5:
-        return f"Plant detected! Green percentage: {green_percentage:.2f}%.", output_path
+        return f"Plant detected! Green percentage: {green_percentage:.2f}%. You passed the test.", output_path
     else:
         return "No plant detected.", output_path
 
@@ -53,6 +53,8 @@ def detect():
     
     file = request.files['image']
     file_path = os.path.join('uploads', file.filename)
+    
+    # Save the uploaded file to the server
     file.save(file_path)
     
     # Call the detect_plant function
@@ -68,4 +70,5 @@ if __name__ == '__main__':
     if not os.path.exists('uploads'):
         os.makedirs('uploads')
     
+    # Run the Flask app
     app.run(debug=True)
